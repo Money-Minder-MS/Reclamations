@@ -1,16 +1,22 @@
 package com.Examen.Service;
 
+import com.Examen.NotificationPublisher;
+import com.Examen.RabbitMQConfig;
 import com.Examen.clients.UserClient;
 import com.Examen.clients.UserDTO;
 import com.Examen.entities.Reclamation;
 import com.Examen.repositories.ReclamationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReclamationService {
-
+    @Autowired
+    private NotificationPublisher notificationPublisher;
     private final ReclamationRepository reclamationRepository;
     private final UserClient userClient;
 
@@ -20,12 +26,25 @@ public class ReclamationService {
     }
 
     public Reclamation ajouter(Reclamation reclamation) {
-        // Vérifier que le userId existe dans le microservice User
         UserDTO user = userClient.getById(reclamation.getUserId());
         if (user == null) {
             throw new RuntimeException("Utilisateur introuvable avec l'id : " + reclamation.getUserId());
         }
-        return reclamationRepository.save(reclamation);
+
+        Reclamation saved = reclamationRepository.save(reclamation);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("sujet",  saved.getSujet());
+        data.put("statut", saved.getStatut());
+
+        notificationPublisher.publier(
+                RabbitMQConfig.KEY_RECLAMATION,
+                saved.getUserId(),
+                "Réclamation créée : " + saved.getSujet(),
+                data
+        );
+
+        return saved;
     }
 
     public List<Reclamation> afficherTout() {
