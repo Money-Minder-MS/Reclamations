@@ -11,8 +11,12 @@ public class Reclamation {
 
     private String sujet;
     private String message;
-    private String statut; // Ex: "EN_ATTENTE"
+    private String statut; // Ex: "EN_ATTENTE" | "EN_TRAITEMENT" | "RESOLUE"
     private LocalDateTime dateCreation;
+
+    @Column(columnDefinition = "TEXT")
+    private String reponse;          // Réponse de l'admin
+    private LocalDateTime dateReponse;
 
     // Ajout de l'attribut userId pour lier au microservice User
     private Long userId;
@@ -37,6 +41,12 @@ public class Reclamation {
 
     public LocalDateTime getDateCreation() { return dateCreation; }
     public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }
+
+    public String getReponse() { return reponse; }
+    public void setReponse(String reponse) { this.reponse = reponse; }
+
+    public LocalDateTime getDateReponse() { return dateReponse; }
+    public void setDateReponse(LocalDateTime dateReponse) { this.dateReponse = dateReponse; }
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }

@@ -43,6 +43,16 @@ public class ReclamationController {
         return reclamationService.modifier(reclamation);
     }
 
+    @PutMapping("/{id}/statut")
+    public Reclamation changerStatut(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        return reclamationService.changerStatut(id, body.get("statut"));
+    }
+
+    @PutMapping("/{id}/repondre")
+    public Reclamation repondre(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        return reclamationService.repondre(id, body.get("reponse"));
+    }
+
     @DeleteMapping("/delete/{id}")
     public void supprimer(@PathVariable Long id) {
         reclamationService.supprimer(id);

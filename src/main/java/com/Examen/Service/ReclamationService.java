@@ -64,6 +64,47 @@ public class ReclamationService {
         return reclamationRepository.save(reclamation);
     }
 
+    public Reclamation changerStatut(Long id, String statut) {
+        Reclamation r = reclamationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Réclamation introuvable : " + id));
+        r.setStatut(statut);
+        Reclamation saved = reclamationRepository.save(r);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("sujet",  saved.getSujet());
+        data.put("statut", saved.getStatut());
+        notificationPublisher.publier(
+                RabbitMQConfig.KEY_RECLAMATION,
+                saved.getUserId(),
+                "Statut de votre réclamation mis à jour : " + statut,
+                data
+        );
+        return saved;
+    }
+
+    public Reclamation repondre(Long id, String reponse) {
+        Reclamation r = reclamationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Réclamation introuvable : " + id));
+        r.setReponse(reponse);
+        r.setDateReponse(java.time.LocalDateTime.now());
+        if (r.getStatut() == null || "EN_ATTENTE".equals(r.getStatut())) {
+            r.setStatut("EN_TRAITEMENT");
+        }
+        Reclamation saved = reclamationRepository.save(r);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("sujet",   saved.getSujet());
+        data.put("statut",  saved.getStatut());
+        data.put("reponse", saved.getReponse());
+        notificationPublisher.publier(
+                RabbitMQConfig.KEY_RECLAMATION,
+                saved.getUserId(),
+                "Réponse à votre réclamation : " + saved.getSujet(),
+                data
+        );
+        return saved;
+    }
+
     public void supprimer(Long id) {
         reclamationRepository.deleteById(id);
     }
